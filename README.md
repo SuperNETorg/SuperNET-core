@@ -1,12 +1,9 @@
-libjl777
+SuperNET Core (libjl777)
 ========
 
 Build instructions for ubuntu
 
-clang, libcurl must be in the system:
-
 sudo apt-get install clang
-
 sudo apt-get install libcurl4-gnutls-dev
 
 cd libjl777
