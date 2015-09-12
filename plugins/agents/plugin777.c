@@ -42,16 +42,16 @@
 #include <math.h>
 #include <float.h>
 #include <ctype.h>
-#include "nn.h"
-#include "bus.h"
-#include "pubsub.h"
-#include "pipeline.h"
-#include "reqrep.h"
-#include "survey.h"
-#include "pair.h"
-#include "pubsub.h"
+#include "../../nanomsg/src/nn.h"
+#include "../../nanomsg/src/bus.h"
+#include "../../nanomsg/src/pubsub.h"
+#include "../../nanomsg/src/pipeline.h"
+#include "../../nanomsg/src/reqrep.h"
+#include "../../nanomsg/src/survey.h"
+#include "../../nanomsg/src/pair.h"
+#include "../../nanomsg/src/pubsub.h"
 #include "../includes/cJSON.h"
-#include "../uthash.h"
+#include "../includes/uthash.h"
 
 #ifndef PLUGINMILLIS
 #define PLUGINMILLIS 10000
@@ -96,6 +96,7 @@ void randombytes(unsigned char *x,long xlen);
 int32_t OS_getppid();
 void portable_OS_init();
 static int32_t nn_settimeouts2(int32_t sock,int32_t sendtimeout,int32_t recvtimeout);
+int32_t myatoi(char *str,int32_t maxval);
 
 #endif
 #else
@@ -330,7 +331,7 @@ static int32_t process_json(char *retbuf,int32_t max,struct plugin_info *plugin,
             myipaddr = cJSON_str(cJSON_GetObjectItem(obj,"ipaddr"));
             if ( is_ipaddr(myipaddr) != 0 )
                 strcpy(plugin->ipaddr,myipaddr);
-            plugin->port = get_API_int(cJSON_GetObjectItem(obj,"port"),0);
+            plugin->port = juint(obj,"port");
         }
     }
     //fprintf(stderr,"tag.%llu initflag.%d got jsonargs.(%s) [%s] %p\n",(long long)tag,initflag,jsonargs,jsonstr,obj);
@@ -526,7 +527,7 @@ int32_t main
         return(0);
     }
     randombytes((uint8_t *)&plugin->myid,sizeof(plugin->myid));
-    plugin->permanentflag = atoi(argv[1]);
+    plugin->permanentflag = myatoi((char *)argv[1],2);
     plugin->daemonid = calc_nxt64bits(argv[2]);
 #ifdef BUNDLED
     plugin->bundledflag = 1;

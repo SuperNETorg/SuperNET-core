@@ -101,14 +101,14 @@ int32_t get_equivalent_assetids(uint64_t *equivids,uint64_t bits)
 
 char *MGWassets[][3] =
 {
+    { "12659653638116877017", "BTC", "8" },
     { "17554243582654188572", "BTC", "8" }, // assetid, name, decimals
     { "4551058913252105307", "BTC", "8" },
-    { "12659653638116877017", "BTC", "8" },
-    { "11060861818140490423", "BTCD", "4" },
     { "6918149200730574743", "BTCD", "4" },
+    { "11060861818140490423", "BTCD", "4" },
     { "13120372057981370228", "BITS", "6" },
-    { "2303962892272487643", "DOGE", "4" },
     { "16344939950195952527", "DOGE", "4" },
+    { "2303962892272487643", "DOGE", "4" },
     { "6775076774325697454", "OPAL", "8" },
     { "7734432159113182240", "VPN", "4" },
     { "9037144112883608562", "VRC", "8" },
@@ -271,7 +271,7 @@ uint32_t set_assetname(uint64_t *multp,char *name,uint64_t assetbits)
         {
             strcpy(name,MGWassets[i][1]);
             if ( multp != 0 )
-                *multp = calc_decimals_mult(atoi(MGWassets[i][2]));
+                *multp = calc_decimals_mult(myatoi(MGWassets[i][2],9));
             //printf("SETASSETNAME.(%s) <- %s mult.%llu\n",name,assetstr,(long long)*multp);
             return(INSTANTDEX_NATIVE); // native crypto type
         }

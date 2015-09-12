@@ -16,9 +16,9 @@ else
     PLANL := -lanl
 endif
 
-PLIBS := ../libs/libjl777.a ../libs/libminiupnpc.a ../nanomsg/.libs/libnanomsg.a -lpthread -lcurl -lm $(PLANL)
+PLIBS := ../libs/libjl777.a ../libs/libminiupnpc.a ../nanomsg/.libs/libnanomsg.a ../libs/libccoin.a -lcrypto -lssl -lpthread -lcurl -lz -lm $(PLANL)
 
-LIBS= libs/libjl777.a nanomsg/.libs/libnanomsg.a libs/libminiupnpc.a -lpthread -lcurl -lm $(LANL)
+LIBS= libs/libjl777.a nanomsg/.libs/libnanomsg.a libs/libminiupnpc.a libs/libccoin.a -lpthread -lcrypto -lssl -lcurl -lz -lm $(LANL)
 
 CC=clang
 CFLAGS=-Wall -O2  -pedantic -g -fPIC -Iplugins/includes -Inanomsg/src -Inanomsg/src/utils -Iplugins/includes/libtom  -Iplugins/includes/miniupnp -I.. -Iplugins/nonportable/$(OS)  -Wno-unused-function -fPIC -fvisibility=hidden -fstack-protector-all -Wstack-protector -D_FORTIFY_SOURCE=2  #-Iplugins/utils -Iplugins/nonportable -Iincludes  -Iplugins/mgw -Iplugins/InstantDEX -Iplugins/sophia -Iplugins/ramchain -Iplugins/coins  -I../includes -I../../includes -I/usr/include -Iplugins#-DADDRINFO_SIZE=256
@@ -54,7 +54,7 @@ NONPORTABLE = plugins/nonportable/$(OS)/files.c plugins/nonportable/$(OS)/random
 COINS = $(C)/cointx.c $(C)/coins777.c $(C)/coins777_main.c $(C)/gen1.c #$(C)/gen1auth.c $(C)/gen1pub.c 
 CRYPTO = $(U)/sha256.c $(U)/crypt_argchk.c $(U)/hmac_sha512.c $(U)/rmd160.c $(U)/sha512.c $(U)/peer777.c $(U)/user777.c $(U)/node777.c $(U)/SaM.c $(U)/transport777.c $(U)/crypto777.c $(U)/packet777.c $(U)/tom_md5.c
 INSTANTDEX = $(I)/InstantDEX_main.c
-COMMON = plugins/common/busdata777.c plugins/common/relays777.c plugins/common/console777.c plugins/common/prices777.c plugins/common/cashier777.c plugins/common/txnet777.c plugins/common/teleport777.c plugins/common/opreturn777.c $(C)/bitcoind_RPC.c plugins/common/txind777.c plugins/common/system777.c plugins/agents/_dcnet/dcnet777.c
+COMMON = plugins/common/busdata777.c plugins/common/relays777.c plugins/common/console777.c plugins/common/prices777.c plugins/common/cashier777.c plugins/common/txnet777.c plugins/common/teleport777.c plugins/common/opreturn777.c $(C)/bitcoind_RPC.c plugins/common/txind777.c plugins/common/system777.c plugins/agents/_dcnet/dcnet777.c plugins/agents/_dcnet/shuffle777.c
 MGW = plugins/mgw/MGW_main.c $(S)/sophia.c $(S)/db777.c
 
 SRCS = SuperNET.c libjl777.c $(CRYPTO) $(UTILS) $(COINS) $(NONPORTABLE) $(RAMCHAIN) $(INSTANTDEX) $(PEGGY) $(KV) $(COMMON)
@@ -71,11 +71,13 @@ test:	all
 	(cd tests; $(MAKE) test)
 
 clean: doesntexist
-	rm libs/libjl777.a SuperNET; rm -f libjl777.a libs/libjl777.so $(OBJS) *~
+	rm SuperNET; rm -f libjl777.a libs/libjl777.so $(OBJS) *~
 
 PINCLUDES := -Iincludes -Inonportable/$(OS)  -I../nanomsg/src -I../nanomsg/src/utils -Iincludes/libtom -Iincludes/miniupnp #-I. -Iutils -Iramchain -Icoins -Imgw -I -Isophia -I../includes -I../.. -I../coins -I../ramchain -I../sophia -I../utils -I../mgw
 
 _echodemo := rm agents/echodemo; gcc -o agents/echodemo -O2 $(PINCLUDES) agents/echodemo.c $(PLIBS)
+
+_shuffle := rm agents/shuffle; gcc -o agents/shuffle -O2 $(PINCLUDES) agents/shuffle777.c $(PLIBS)
 
 #_rps := rm agents/rps; gcc -o agents/rps -O2 $(PINCLUDES) common/rps777.c $(PLIBS)
 
@@ -96,6 +98,7 @@ _stockfish := cd agents/stockfish; rm stockfish; $(MAKE) build ARCH=x86-64-moder
 agents: plugins/agents/echodemo plugins/cgi/api plugins/agents/nxt plugins/agents/two plugins/agents/eth plugins/agents/msc; \
 	cd plugins; \
     $(_echodemo); \
+    #$(_shuffle); \
     $(_api); \
     cd ..
 
@@ -139,7 +142,7 @@ MGW: $(SRCS) $(TARGET); \
     clang -o MGW -DINSIDE_MGW $(CFLAGS) -D STANDALONE $(SRCS) $(LIBS) 
 
 SuperNET: $(SRCS) $(TARGET); \
-    pkill SuperNET; rm SuperNET; clang -o SuperNET $(CFLAGS) -D STANDALONE $(SRCS) $(LIBS) 
+    pkill SuperNET; rm SuperNET; clang -o SuperNET $(CFLAGS) -D STANDALONE $(SRCS) $(LIBS); strip SuperNET
 
 #-lz -ldl -lutil -lpcre -lexpat
 
@@ -154,7 +157,7 @@ btcdmac: ../src/BitcoinDarkd; \
     cd ../src; rm BitcoinDarkd; $(MAKE) -f makefile.osx; strip BitcoinDarkd; cp BitcoinDarkd ../libjl777
 
 install: doesntexist; \
-    sudo add-apt-repository ppa:fkrull/deadsnakes; sudo apt-get update; sudo aptitude install python-software-properties software-properties-common autotools-dev ; add-apt-repository ppa:bitcoin/bitcoin; echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list ; echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list ; apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 ; aptitude update; aptitude install git build-essential libdb++-dev  libtool  autoconf pkg-config libssl-dev libboost-all-dev libminiupnpc-dev clang libcurl4-gnutls-dev oracle-java8-installer libwebsockets3 libwebsockets-dev cmake qt4-qmake libqt4-dev build-essential libboost-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev libssl-dev libdb++-dev libminiupnpc-dev python3-dev libpcre-ocaml-dev #openjdk-7-jdk openjdk-7-jre-lib
+    sudo add-apt-repository ppa:fkrull/deadsnakes; sudo apt-get update; sudo aptitude install python-software-properties software-properties-common autotools-dev ; add-apt-repository ppa:bitcoin/bitcoin; echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list ; echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list ; apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 ; aptitude update; aptitude install git build-essential libdb++-dev  libtool  autoconf pkg-config libssl-dev libboost-all-dev libminiupnpc-dev clang libcurl4-gnutls-dev oracle-java8-installer libwebsockets3 libwebsockets-dev cmake qt4-qmake libqt4-dev build-essential libboost-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev libssl-dev libdb++-dev libevent-dev libjansson-dev libminiupnpc-dev python3-dev libpcre-ocaml-dev #openjdk-7-jdk openjdk-7-jre-lib
 
 getramchain2:  doesntexist; \
     mkdir /var/www/html/ramchains; mkdir /var/www/html/ramchains/BTCD; \
@@ -207,7 +210,8 @@ patch: doesntexist; \
     ./all.bash; \
     export GOPATH=$$HOME/gocode; \
     export GOROOT=$$HOME/go; \
-    PATH="$$PATH:$$GOROOT/bin:$$GOPATH/bin"; \
+    #PATH="$$PATH:$$GOROOT/bin:$$GOPATH/bin"; \
+    #PATH="$PATH:$GOROOT/bin:$GOPATH/bin"; \
     #echo "export GOPATH=$$HOME/gocode" >> ~/.profile; \
     #echo "export GOROOT=$$HOME/go" >> ~/.profile; \
     #echo "PATH=\"$$PATH:$$GOPATH/bin:$$GOROOT/bin\"" >> ~/.profile; \
@@ -275,11 +279,15 @@ patch2: doesntexist; \
     #cd ..; \
 
 dependencies: doesntexist; \
-    sudo apt-get install make clang-3.4 autoconf  libtool libcurl4-gnutls-dev unzip autogen g++ libssl-dev libdb++-dev  libminiupnpc-dev libboost-all-dev;
+    sudo apt-get install make clang-3.4 autoconf libevent-dev libjansson-dev libtool libcurl4-gnutls-dev unzip autogen g++ libssl-dev libdb++-dev  libminiupnpc-dev libboost-all-dev;
+
+libccoin: doesntexist; \
+     sudo apt-get install libevent-dev libjansson-dev; git clone https://github.com/jgarzik/picocoin; cd picocoin; ./autogen.sh; ./configure; $(MAKE); cp lib/libccoin.a ../libs; cd ..;
 
 onetime: doesntexist; \
-   cd nanomsg; ./autogen.sh && CFLAGS='$(CFLAGS) -fPIC ' ./configure --with-pic; $(MAKE) -lanl; cd ..; \
+    cd nanomsg; ./autogen.sh && CFLAGS='$(CFLAGS) -fPIC ' ./configure --with-pic; $(MAKE) -lanl; cd ..; \
     cd miniupnpc; $(MAKE); cp libminiupnpc.a ../libs; cd ..; \
+    sudo apt-get install libevent-dev libjansson-dev; git clone https://github.com/jgarzik/picocoin; cd picocoin; ./autogen.sh; ./configure; $(MAKE); cp lib/libccoin.a ../libs; cd ..; \
     git clone https://github.com/joewalnes/websocketd; cd websocketd; $(MAKE); cp websocketd ../libs; cd ..; \
     #git clone https://go.googlesource.com/go; cd go; git checkout go1.4.1; cd src; ./all.bash; cd ..; mkdir gocode; mkdir gocode/src; cd ..; \
     #mkdir go/gocode; mkdir go/gocode/src; export GOPATH=`pwd`/go/gocode;  export GOROOT=`pwd`/go; echo $$GOPATH; echo $$GOROOT; \

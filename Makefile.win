@@ -11,9 +11,9 @@ PATH := $(PWD)/mxe/usr/bin:$(PATH)
 BINPATH := $(PWD)/bin
 PBINPATH := $(BINPATH)/$(OS)/plugins
 
-PLIBS := ../libs/libjl777-$(OS).a ../libs/libminiupnpc-$(OS).a ../$(MXEPATH)/lib/libnanomsg.a -lpthread -lcurl -lgnutls -lnettle -lhogweed -lgmp -lm -liphlpapi -lws2_32 -lwsock32 -lz -lcrypt32 -lssp -lmman -D_WIN32 -DNN_EXPORTS -DNN_HAVE_MINGW -DNN_HAVE_WINDOWS -DNN_USE_LITERAL_IFADDR=1 -DSTATICLIB -DCURL_STATICLIB -DMINGW_HAS_SECURE_API=1
+PLIBS := ../libs/libjl777-$(OS).a ../libs/libminiupnpc-$(OS).a ../$(MXEPATH)/lib/libnanomsg.a ../$(MXEPATH)/lib/libccoin.a -lpthread -lcurl -lcrypto -lgdi32 -lssl -lgnutls -lnettle -lhogweed -lgmp -lm -liphlpapi -lws2_32 -lwsock32 -lz -lcrypt32 -lssp -lmman -lgdi32 -D_WIN32 -DNN_EXPORTS -DNN_HAVE_MINGW -DNN_HAVE_WINDOWS -DNN_USE_LITERAL_IFADDR=1 -DSTATICLIB -DCURL_STATICLIB -DMINGW_HAS_SECURE_API=1
 
-LIBS = libs/libjl777-$(OS).a $(MXEPATH)/lib/libnanomsg.a libs/libminiupnpc-$(OS).a -lpthread -lcurl -lm -liphlpapi -lws2_32 -lwsock32 -lssp -lgnutls -lnettle -lhogweed -lgmp -lz -lcrypt32 -lmman
+LIBS = libs/libjl777-$(OS).a $(MXEPATH)/lib/libnanomsg.a libs/libminiupnpc-$(OS).a $(MXEPATH)/lib/libccoin.a -lpthread -lcurl -lcrypto -lgdi32 -lssl -lm -liphlpapi -lws2_32 -lwsock32 -lssp -lgnutls -lnettle -lhogweed -lgmp -lz -lcrypt32 -lmman
 
 CFLAGS= -w -O2  -pedantic -g -fPIC -I$(MXEPATH)/include -Iplugins/includes -Inanomsg/src -Inanomsg/src/utils -Iplugins/includes/libtom  -Iplugins/includes/miniupnp -I.. -Iplugins/nonportable/win -Wno-unused-function -fPIC -fvisibility=hidden -fstack-protector-all -Wstack-protector -D_FORTIFY_SOURCE=2  -D_WIN32 -DNN_EXPORTS -DNN_HAVE_MINGW -DNN_HAVE_WINDOWS -DNN_USE_LITERAL_IFADDR=1 -DSTATICLIB -DCURL_STATICLIB -DMINIUPNP_STATICLIB -DMINGW_HAS_SECURE_API=1
 
@@ -48,7 +48,7 @@ NONPORTABLE = plugins/nonportable/win/files.c plugins/nonportable/win/random.c
 COINS = $(C)/cointx.c $(C)/coins777.c $(C)/coins777_main.c $(C)/gen1.c #$(C)/gen1auth.c $(C)/gen1pub.c
 CRYPTO = $(U)/sha256.c $(U)/crypt_argchk.c $(U)/hmac_sha512.c $(U)/rmd160.c $(U)/sha512.c $(U)/peer777.c $(U)/user777.c $(U)/node777.c $(U)/SaM.c $(U)/transport777.c $(U)/crypto777.c $(U)/packet777.c $(U)/tom_md5.c
 INSTANTDEX = $(I)/InstantDEX_main.c
-COMMON = plugins/common/busdata777.c plugins/common/relays777.c plugins/common/console777.c plugins/common/prices777.c plugins/common/cashier777.c plugins/common/txnet777.c plugins/common/teleport777.c plugins/common/opreturn777.c $(C)/bitcoind_RPC.c plugins/common/txind777.c plugins/common/system777.c
+COMMON = plugins/common/busdata777.c plugins/common/relays777.c plugins/common/console777.c plugins/common/prices777.c plugins/common/cashier777.c plugins/common/txnet777.c plugins/common/teleport777.c plugins/common/opreturn777.c $(C)/bitcoind_RPC.c plugins/common/txind777.c plugins/common/system777.c plugins/agents/_dcnet/dcnet777.c plugins/agents/_dcnet/shuffle777.c
 MGW = plugins/mgw/MGW_main.c $(S)/sophia.c $(S)/db777.c
 
 
@@ -81,6 +81,8 @@ _nxt := rm agents/nxt; gcc -o agents/nxt -O2 $(PINCLUDES) agents/two/nxt.c $(PLI
 _eth := rm agents/eth; gcc -o agents/eth -O2 $(PINCLUDES) agents/two/eth.c $(PLIBS)
 
 _two := rm agents/two; gcc -o agents/two -O2 $(PINCLUDES) agents/two/two.c $(PLIBS)
+
+_dcnet := rm agents/rps; gcc -o agents/rps -O2 $(PINCLUDES) agents/_dcnet/dcnet777.c $(PLIBS)
 
 _stockfish := cd agents/stockfish; rm stockfish; $(MAKE) build ARCH=x86-64-modern; cp stockfish ../agents; cd ../..
 
@@ -263,7 +265,7 @@ patch2: doesntexist; \
     #cd ..; \
 
 dependencies: doesntexist; \
-    sudo apt-get install autopoint bison bzip2 cmake flex gcc g++ gperf intltool libtool libtool-bin ruby scons wine zlib1g-dev libffi-dev;
+    sudo apt-get install autopoint bison bzip2 cmake flex gcc g++ gperf intltool libtool libtool-bin ruby scons wine zlib1g-dev libffi-dev p7zip-full;
 
 onetime: doesntexist; \
     cd nanomsg; ./autogen.sh; ./configure; $(MAKE) -lanl; cp .libs/libnanomsg.a ../libs/libnanomsg-$(OS).a cd ..; \
@@ -276,7 +278,7 @@ ifeq ($(wildcard mxe),)
 	git clone http://github.com/mxe/mxe;
 	sh make_$(OS).sh;
 else
-	cd mxe;	git pull; cd ..;
+	cd mxe; git reset --hard; git pull; cd ..;
 	sh make_$(OS).sh;
 endif
 

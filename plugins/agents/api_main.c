@@ -15,10 +15,10 @@
 
 #include <stdint.h>
 #include "../ccgi/ccgi.h"
-#include "nn.h"
 #include "../includes/cJSON.h"
-#include "pair.h"
-#include "pipeline.h"
+#include "../../nanomsg/src/nn.h"
+#include "../../nanomsg/src/pair.h"
+#include "../../nanomsg/src/pipeline.h"
 #include "nonportable.h"
 #ifdef _WIN32
 #define setenv(x, y, z) _putenv_s(x, y)
@@ -41,7 +41,8 @@ void process_json(cJSON *json,char *remoteaddr,int32_t localaccess)
     apitag = _crc32(0,jsonstr,len);
     sprintf(endpoint,"ipc://api.%u",apitag);
     free(jsonstr);
-    recvtimeout = get_API_int(cJSON_GetObjectItem(json,"timeout"),30000);
+    if ( (recvtimeout= juint(json,"timeout")) == 0 )
+        recvtimeout = 30000;
     sendtimeout = 30000;
     randombytes((uint8_t *)&tag,sizeof(tag));
     if ( cJSON_GetObjectItem(json,"tag") == 0 )
